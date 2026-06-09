@@ -69,6 +69,7 @@ main {
 display: grid;
 grid-template-columns: 380px 1fr;
 height: calc(100vh - 65px);
+overflow: hidden;
 }
 
 .left-panel {
@@ -77,6 +78,7 @@ display: flex;
 flex-direction: column;
 background: var(–surface);
 overflow: hidden;
+min-height: 0; /* FIX: allow panel to shrink in grid */
 }
 
 .panel-header {
@@ -196,7 +198,8 @@ display: flex;
 flex-direction: column;
 overflow: hidden;
 background: var(–bg);
-position: relative; /* FIX: needed for absolute children if any */
+position: relative;
+min-height: 0; /* FIX: allow panel to shrink in grid */
 }
 
 /* FIX: emptyState and editor are mutually exclusive via JS; give emptyState
@@ -588,9 +591,22 @@ max-width: 380px;
 .api-key-hint { font-size: 11px; color: var(–muted); }
 
 @media (max-width: 900px) {
-main { grid-template-columns: 1fr; }
-.left-panel { height: 40vh; border-right: none; border-bottom: 1px solid var(–border); }
-.right-panel { height: 60vh; }
+main {
+grid-template-columns: 1fr;
+grid-template-rows: auto 1fr; /* left panel auto height, right panel fills rest */
+height: calc(100vh - 65px);
+overflow: hidden;
+}
+.left-panel {
+height: auto;
+max-height: 38vh; /* cap the file list panel */
+border-right: none;
+border-bottom: 1px solid var(–border);
+}
+.right-panel {
+height: 0; /* FIX: let grid row 1fr control the height, not content */
+min-height: 0;
+}
 .ai-result-grid { grid-template-columns: 1fr; }
 .fields-grid { grid-template-columns: 1fr; }
 }
