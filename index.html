@@ -216,8 +216,10 @@ padding: 40px;
 .empty-state h2 { font-size: 18px; font-weight: 600; color: var(–muted2); margin-bottom: 8px; }
 .empty-state p { font-size: 14px; line-height: 1.6; max-width: 320px; }
 
-/* FIX: editor uses display:flex so it can fill height properly when shown */
-.editor { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+/* FIX: editor uses display:flex so it can fill height properly when shown.
+min-height:0 is critical — without it a flex child won’t shrink below its
+content size, so overflow:hidden on the children never kicks in. */
+.editor { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; }
 
 .editor-topbar {
 display: flex;
@@ -278,6 +280,7 @@ padding: 28px;
 display: flex;
 flex-direction: column;
 gap: 20px;
+min-height: 0; /* FIX: prevents flex child from refusing to shrink */
 }
 
 .editor-body::-webkit-scrollbar { width: 4px; }
