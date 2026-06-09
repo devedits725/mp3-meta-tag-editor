@@ -712,8 +712,8 @@ header { padding: 0 16px; }
 <!-- FIX: editor hidden by default; showEditor() switches display to 'flex' -->
 <div class="editor" id="editor" style="display:none">
   <div class="api-key-bar">
-    <label>Gemini API Key</label>
-    <input class="api-key-input" type="password" id="geminiKey" placeholder="Paste your Gemini API key here…">
+    <label>OpenAI API Key</label>
+    <input class="api-key-input" type="password" id="openaiKey" placeholder="Paste your OpenAI API key here…">
     <span class="api-key-hint">Required for AI Auto-fill</span>
   </div>
 
@@ -1104,13 +1104,13 @@ TAG_FIELDS.forEach(k => {
   }
 });
 
-// ─── AI Tag Generation (Gemini) ────────────────────────
+// ─── AI Tag Generation (OpenAI) ────────────────────────
 async function runAI() {
   if (selectedIdx < 0) return;
 
-  const apiKey = document.getElementById('geminiKey').value.trim();
+  const apiKey = document.getElementById('openaiKey').value.trim();
   if (!apiKey) {
-    showNotif('❌ Paste your Gemini API key first.', 'error');
+    showNotif('❌ Paste your OpenAI API key first.', 'error');
     return;
   }
 
@@ -1163,17 +1163,19 @@ Rules:
 - Do NOT invent information; only infer what's reasonable from the filename`;
 
   try {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(apiKey)}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { responseMimeType: 'application/json', maxOutputTokens: 512 }
-        })
-      }
-    );
+    const res = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        max_tokens: 512,
+        response_format: { type: 'json_object' },
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
 
     if (!res.ok) {
       const errBody = await res.json().catch(() => ({}));
@@ -1182,7 +1184,7 @@ Rules:
     }
 
     const data = await res.json();
-    const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    const rawText = data?.choices?.[0]?.message?.content || '';
     const clean = rawText.replace(/```json|```/g, '').trim();
     const parsed = JSON.parse(clean);
 
@@ -1482,7 +1484,7 @@ function clearAll() {
   hideEditor();
 }
 
-// ─── Notifications  ─────────────────────────────────────
+// ─── Notifications ─────────────────────────────────────
 let notifTimer;
 function showNotif(msg, type = 'success') {
   const el = document.getElementById('notif');
